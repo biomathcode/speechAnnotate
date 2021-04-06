@@ -29,21 +29,9 @@ code {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-evenly;
-  margin: 20px;
-  padding: 10px;
-  border-radius: 5px;
-}
-.labelcontainer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-evenly;  
-}
-.inputLabel {
-  display: flex;
-  flex-direction: column;
   
 }
+
 
 input {
   border-radius:5px;

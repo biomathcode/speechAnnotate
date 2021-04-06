@@ -18,6 +18,8 @@
     "react-input-color": "^4.0.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
+    "react-transliterate": "^1.0.3",
+    "react-uuid": "^1.0.2",
     "styled-components": "^5.2.1",
     "wavesurfer.js": "^4.6.0",
     "web-vitals": "^1.0.1"

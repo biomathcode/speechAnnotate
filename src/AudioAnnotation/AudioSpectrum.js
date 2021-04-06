@@ -7,11 +7,10 @@ import CursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor';
 import SpectroPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.spectrogram';
 
 import { WaveformContianer, Wave, PlayButton, Timeline, AudioContainer } from './styles';
-import Image from './../audio/1/1/110.png'
-
-import audiofile from './../audio/1/1/110.wav'
 
 
+import { ReactTransliterate } from "react-transliterate";
+import "react-transliterate/dist/index.css";
 
 
 
@@ -29,16 +28,17 @@ class AudioSpectrum extends Component {
         cursorTime: 0,
         url: this.props.url,
         spectogram: this.props.spectogram,
-        table:this.props.filedata.table,
+        table: this.props.filedata.table,
         index: this.props.filedata.index,
         serial: this.props.filedata.serial,
-        start: 0,
-        end: 1,
+        regions: [],
+        start: 0.1,
+        end: 0.5,
         label: '',
         duration: 0,
     }
     componentDidMount() {
-        
+
         const track = document.querySelector('#track');
 
         const formatTimeCallback = (seconds, pxPerSec) => {
@@ -85,34 +85,32 @@ class AudioSpectrum extends Component {
             return retval;
         }
 
-    const primaryLableInterval =(pxPerSec) => {
-        var retval = 1;
-    if (pxPerSec >= 25 * 100) {
-        retval = 10;
-    } else if (pxPerSec >= 25 * 40) {
-        retval = 4;
-    } else if (pxPerSec >= 25 * 10) {
-        retval = 10;
-    } else if (pxPerSec >= 25 * 4) {
-        retval = 4;
-    } else if (pxPerSec >= 25) {
-        retval = 1;
-    } else if (pxPerSec * 5 >= 25) {
-        retval = 5;
-    } else if (pxPerSec * 15 >= 25) {
-        retval = 15;
-    } else {
-        retval = Math.ceil(0.5 / pxPerSec) * 60;
-    }
-    return retval;
-    }
+        const primaryLableInterval = (pxPerSec) => {
+            var retval = 1;
+            if (pxPerSec >= 25 * 100) {
+                retval = 10;
+            } else if (pxPerSec >= 25 * 40) {
+                retval = 4;
+            } else if (pxPerSec >= 25 * 10) {
+                retval = 10;
+            } else if (pxPerSec >= 25 * 4) {
+                retval = 4;
+            } else if (pxPerSec >= 25) {
+                retval = 1;
+            } else if (pxPerSec * 5 >= 25) {
+                retval = 5;
+            } else if (pxPerSec * 15 >= 25) {
+                retval = 15;
+            } else {
+                retval = Math.ceil(0.5 / pxPerSec) * 60;
+            }
+            return retval;
+        }
 
-    const secondaryLabelInterval =(pxPerSec) => {
-        // draw one every 10s as an example
-    return Math.floor(10 / timeInterval(pxPerSec));
-    }
-
-
+        const secondaryLabelInterval = (pxPerSec) => {
+            // draw one every 10s as an example
+            return Math.floor(10 / timeInterval(pxPerSec));
+        }
 
         this.waveform = WaveSurfer.create({
             barWidth: 5,
@@ -140,8 +138,8 @@ class AudioSpectrum extends Component {
                     container: '#timeline',
                     formatTimeCallback: formatTimeCallback,
                     timeInterval: timeInterval,
-                    primaryLableInterval: primaryLableInterval, 
-                    secondaryLabelInterval: secondaryLabelInterval, 
+                    primaryLableInterval: primaryLableInterval,
+                    secondaryLabelInterval: secondaryLabelInterval,
                     primaryColor: 'blue',
                     secondaryColor: 'red',
                     primaryFontColor: 'blue',
@@ -166,9 +164,7 @@ class AudioSpectrum extends Component {
         this.waveform.load(track);
         this.waveform.on('ready', function () {
             this.waveform.enableDragSelection({
-                color: AudioSpectrum.randomColor(0.1)
             })
-
         })
         // plays only the sound under the region
         this.waveform.on('region-click', function (region, e) {
@@ -176,10 +172,14 @@ class AudioSpectrum extends Component {
             // Play on click, loop on shift click
             e.shiftKey ? region.playLoop() : region.play();
         });
+
+
         //remove the regions on double click
-        this.waveform.on('region-dblclick', function(region, e) {
-            region.remove()
-        })
+
+        // this.waveform.on('region-in', function(region, e) {
+        //     region.data = "this is the new data"
+        //     console.log(region.data)
+        // })
         // wavesurfer.on('region-click', editAnnotation);
         // wavesurfer.on('region-updated', saveRegions);
         // wavesurfer.on('region-removed', saveRegions);
@@ -191,7 +191,29 @@ class AudioSpectrum extends Component {
         //         wavesurfer.pause();
         //     });
         // });
-
+    }
+    componentDidUpdate() {
+        this.waveform.on('region-click', editAnnotation)
+        function editAnnotation(region) {
+            let form = document.forms.edit;
+            form.style.opacity = 1;
+            form.elements.note.value = region.data || '';
+            form.onsubmit = function (e) {
+                e.preventDefault();
+                region.update({
+                    data: form.elements.note.value
+                });
+                form.style.opacity = 0;
+            };
+            form.onreset = function () {
+                form.style.opacity = 0;
+                form.dataset.region = null;
+            };
+            form.dataset.region = region.id;
+        }
+        this.waveform.on('region-dblclick', function (region, e) {
+            region.remove()
+        })
     }
     handlePlayPause = () => {
         this.setState({ playing: !this.state.playing })
@@ -208,30 +230,22 @@ class AudioSpectrum extends Component {
             color: AudioSpectrum.randomColor(),
         })
     }
-    gettingAnnotations = () => {
-        return (
-            console.log(
-                this.waveform.regions.list
-            )
-        )
-    }
+
     removeAll = () => {
         this.waveform.clearRegions()
     }
-    zoom = () => {
 
-    }
     //ToDo url 
     downloadFile = async () => {
         const regionsList = []
         const regions = Object.values(this.waveform.regions.list)
             .map(region => {
-              const json = {
-                  start : region.start,
-                  end: region.end,
-                  label: region.data
-              }
-              return regionsList.push(json)
+                const json = {
+                    start: region.start,
+                    end: region.end,
+                    label: region.data
+                }
+                return regionsList.push(json)
             })
         const fileName = "file";
         const fileinfo = {
@@ -240,32 +254,32 @@ class AudioSpectrum extends Component {
             regions: regionsList
         }
         const json = JSON.stringify(fileinfo)
-            console.log(regionsList, fileinfo)
-            const blob = new Blob([json],{type:'application/json'});
-            console.log(blob)
-            const href = await URL.createObjectURL(blob);
-            console.log(href)
-            const link = document.createElement('a');
-            link.href = href;
-            link.download = fileName + ".json";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        console.log(regionsList, fileinfo)
+        const blob = new Blob([json], { type: 'application/json' });
+        console.log(blob)
+        const href = await URL.createObjectURL(blob);
+        console.log(href)
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = fileName + ".json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     sendingFile = () => {
         //sending post request at http://xn--11by0j.com:8000/api/v1/response_srt_web/
-        const folder =  String(this.state.table)+ "/" + String(this.state.index) + "/" + this.state.serial
+        const folder = String(this.state.table) + "/" + String(this.state.index) + "/" + this.state.serial
         console.log(folder)
         const regionsList = []
         const regions = Object.values(this.waveform.regions.list)
             .map(region => {
-              const json = {
-                  start : region.start,
-                  end: region.end,
-                  label: region.data
-              }
-              return regionsList.push(json)
+                const json = {
+                    start: region.start,
+                    end: region.end,
+                    label: region.data
+                }
+                return regionsList.push(json)
             })
         const data = {
             folder: folder,
@@ -276,74 +290,57 @@ class AudioSpectrum extends Component {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'},
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(
                 data
             )
         };
         fetch('http://xn--11by0j.com:8000/api/v1/response_srt_web/', requestOptions)
-        .then(res =>{
-            res.json()
-        })
-        .then(data => console.log(data))
+            .then(res => {
+                res.json()
+            })
+            .then(data => console.log(data))
     }
+    Comp
 
     render() {
-    
+
+
         return (
             <>
+                <PlayButton onClick={this.handlePlayPause}>
+                    {
+                        !this.state.playing ? 'Play' : 'Pause'
+                    }
+                </PlayButton>
                 <AudioContainer>
-
-                    <PlayButton onClick={this.handlePlayPause}>
-                        {
-                            !this.state.playing ? 'Play' : 'Pause'
-                        }
-                    </PlayButton>
-                    <button onClick={this.gettingAnnotations}>
-                        Annotations
-                    </button>
                     <button onClick={this.removeAll}>
                         Remove all
                     </button>
                     <button onClick={this.downloadFile}>download</button>
                     <button onClick={this.sendingFile}>Sending to server</button>
-                    <input type="range" id="slider" onInput={(event) => console.log(event) } />
                     <WaveformContianer>
                         <Wave id="waveform" />
-                        <audio id="track" src={this.state.url} onLoadedMetadata = {event => {this.setState({duration: event.target.duration})}} />
+                        <audio id="track" src={this.state.url} onLoadedMetadata={event => { this.setState({ duration: event.target.duration }) }} />
                     </WaveformContianer>
 
                     {/* <div id="Spectograph" /> */}
                 </AudioContainer>
-                <div className="labelForm">
-                    <div className="labelcontainer">
-                    <div  className="inputLabel ">
-                    <label htmlFor="start">Start</label>
-                    <input value={this.state.start} step={0.1} onChange={(e) => this.setState({ start: e.target.value })} placeholder="start" type="number" />
-                    </div>
-                    <div  className="inputLabel ">
-                    <label htmlFor="end">End</label>
-                    <input value={this.state.end} step={0.1} onChange={(e) => this.setState({ end: e.target.value })} placeholder="end" type="number" />
-                    </div>
-                    <div  className="inputLabel ">
-                    <label htmlFor="label">Label</label>
-                    <input value={this.state.label} onChange={(e) => this.setState({ label: e.target.value })} placeholder="label" type="string" />
-                    </div>
-                    </div>
-                    
-                    <button onClick={this.addRegion}>
-                        Add a new region
-                </button>
+                <div className="labelForm" >
+                    <form name="edit" style={{ opacity: 0, transition: 'opacity 300ms linear', margin: '10px 0' }}>
+                        <div class="form-group">
+                            <label htmlFor="note">Note</label>
+                            <ReactTransliterate value={this.state.label} onChange={(e) => this.setState({ label: e.target.value })} id="note" class="form-control" rows="3" name="note" />
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">Save</button>
+
+                    </form>
                 </div>
-
                 {/* <img src={Image} height="300px" width="100%" alt="spectrograph" /> */}
-                <img src={this.state.spectogram} height="300px" width="100%" alt="newdata"/>
-                
+                <img src={this.state.spectogram} height="300px" width="100%" alt="newdata" />
+
                 <Timeline id="timeline" />
-
-        
-
-                
             </>
 
         );
