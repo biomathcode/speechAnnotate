@@ -32,6 +32,11 @@ code {
   
 }
 
+.region-label {
+  list-style-type: none;
+  font-size: larger;
+  margin-left: 20px;
+}
 
 input {
   border-radius:5px;

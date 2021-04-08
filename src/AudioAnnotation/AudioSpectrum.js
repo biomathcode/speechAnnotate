@@ -162,17 +162,20 @@ class AudioSpectrum extends Component {
         })
         //getting the element it and loading the url
         this.waveform.load(track);
-        this.waveform.on('ready', function () {
-            this.waveform.enableDragSelection({
-            })
-        })
-        // plays only the sound under the region
-        this.waveform.on('region-click', function (region, e) {
-            e.stopPropagation();
-            // Play on click, loop on shift click
-            e.shiftKey ? region.playLoop() : region.play();
-        });
 
+        const randomColor =(gradient= 0.5) => (
+            `
+        rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(
+                Math.random() * 256,
+            )}, ${gradient})
+    
+        `
+    )
+    this.waveform.on('ready', function () {
+        this.waveform.enableDragSelection({
+            color: randomColor()
+        })
+    })
 
         //remove the regions on double click
 
@@ -192,7 +195,24 @@ class AudioSpectrum extends Component {
         //     });
         // });
     }
+
     componentDidUpdate() {
+        
+        // plays only the sound under the region
+        this.waveform.on('region-click', function (region, e) {
+            e.stopPropagation();
+            // Play on click, loop on shift click
+            e.shiftKey ? region.playLoop() : region.play();
+        });
+
+        this.waveform.on('region-mouseenter', showNote);
+        function showNote(region) {
+            if (!showNote.el) {
+                showNote.el = document.querySelector('#subtitle');
+            }
+            showNote.el.textContent = region.data || '–';
+        }
+
         this.waveform.on('region-click', editAnnotation)
         function editAnnotation(region) {
             let form = document.forms.edit;
@@ -204,6 +224,13 @@ class AudioSpectrum extends Component {
                     data: form.elements.note.value
                 });
                 form.style.opacity = 0;
+                let regionElement = document.querySelectorAll('region')
+                regionElement.forEach(el => {
+                    if(el.getAttribute('data-id') === region.id) {
+                        let label = '<li class="region-label">'+ region.data + '</li>'
+                        return el.insertAdjacentHTML('beforeend', label)
+                    } 
+                })
             };
             form.onreset = function () {
                 form.style.opacity = 0;
@@ -214,11 +241,39 @@ class AudioSpectrum extends Component {
         this.waveform.on('region-dblclick', function (region, e) {
             region.remove()
         })
+
+        this.waveform.on('region-updated', function (region, e) {
+            // console.log(region.data,e)
+            // if (region.data === {} ) {
+            //     return 
+            // } else {
+            //     const regionofInterest = document.querySelector('region')
+            //     console.log(regionofInterest.dataset.id)
+            //     if (regionofInterest.dataset.id === region.id) {
+            //         var node = document.createElement("li");
+            //         node.textContent = region.data
+            //         regionofInterest.appendChild(node)
+            //     }
+
+            // }
+            
+            if(typeof(region.data) === 'string'){
+
+                // if (regionElement[0].getAttribute('data-id') === region.id) {
+
+                //         }  
+                //         console.log(region)
+            }
+            // if(region.data ) {
+            //     
+
+            // }
+            
+        })
     }
     handlePlayPause = () => {
         this.setState({ playing: !this.state.playing })
         this.waveform.playPause();
-        console.log(this.waveform.regions.list)
     };
 
     //adding regions to play
@@ -254,11 +309,11 @@ class AudioSpectrum extends Component {
             regions: regionsList
         }
         const json = JSON.stringify(fileinfo)
-        console.log(regionsList, fileinfo)
+
         const blob = new Blob([json], { type: 'application/json' });
-        console.log(blob)
+
         const href = await URL.createObjectURL(blob);
-        console.log(href)
+
         const link = document.createElement('a');
         link.href = href;
         link.download = fileName + ".json";
@@ -270,7 +325,7 @@ class AudioSpectrum extends Component {
     sendingFile = () => {
         //sending post request at http://xn--11by0j.com:8000/api/v1/response_srt_web/
         const folder = String(this.state.table) + "/" + String(this.state.index) + "/" + this.state.serial
-        console.log(folder)
+
         const regionsList = []
         const regions = Object.values(this.waveform.regions.list)
             .map(region => {
@@ -302,9 +357,10 @@ class AudioSpectrum extends Component {
             })
             .then(data => console.log(data))
     }
-    Comp
+
 
     render() {
+        
 
 
         return (
@@ -314,6 +370,7 @@ class AudioSpectrum extends Component {
                         !this.state.playing ? 'Play' : 'Pause'
                     }
                 </PlayButton>
+                <p id="subtitle" className="">&nbsp;</p>
                 <AudioContainer>
                     <button onClick={this.removeAll}>
                         Remove all
@@ -328,12 +385,13 @@ class AudioSpectrum extends Component {
                     {/* <div id="Spectograph" /> */}
                 </AudioContainer>
                 <div className="labelForm" >
+
                     <form name="edit" style={{ opacity: 0, transition: 'opacity 300ms linear', margin: '10px 0' }}>
-                        <div class="form-group">
+                        <div className="form-group">
                             <label htmlFor="note">Note</label>
-                            <ReactTransliterate value={this.state.label} onChange={(e) => this.setState({ label: e.target.value })} id="note" class="form-control" rows="3" name="note" />
+                            <ReactTransliterate value={this.state.label} onChange={(e) => this.setState({ label: e.target.value })} id="note" className="form-control" rows="3" name="note" />
                         </div>
-                        <button type="submit" class="btn btn-success btn-block">Save</button>
+                        <button type="submit" className="btn btn-success btn-block">Save</button>
 
                     </form>
                 </div>
