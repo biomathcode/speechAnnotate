@@ -32,6 +32,7 @@ class AudioSpectrum extends Component {
         index: this.props.filedata.index,
         serial: this.props.filedata.serial,
         regions: [],
+        responseMessage: 'Send to server',
         start: 0.1,
         end: 0.5,
         label: '',
@@ -197,7 +198,6 @@ class AudioSpectrum extends Component {
     }
 
     componentDidUpdate() {
-        
         // plays only the sound under the region
         this.waveform.on('region-click', function (region, e) {
             e.stopPropagation();
@@ -324,6 +324,7 @@ class AudioSpectrum extends Component {
 
     sendingFile = () => {
         //sending post request at http://xn--11by0j.com:8000/api/v1/response_srt_web/
+        this.setState({responseMessage : 'sending...'})
         const folder = String(this.state.table) + "/" + String(this.state.index) + "/" + this.state.serial
 
         const regionsList = []
@@ -344,8 +345,7 @@ class AudioSpectrum extends Component {
         const requestOptions = {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Accept': 'application/json'
             },
             body: JSON.stringify(
                 data
@@ -353,11 +353,11 @@ class AudioSpectrum extends Component {
         };
         fetch('http://xn--11by0j.com:8000/api/v1/response_srt_web/', requestOptions)
             .then(res => {
-                res.json()
+                res.text()
             })
-            .then(data => console.log(data))
+            
+        this.setState({responseMessage: 'DONE!!!!!!'})
     }
-
 
     render() {
         
@@ -365,18 +365,14 @@ class AudioSpectrum extends Component {
 
         return (
             <>
-                <PlayButton onClick={this.handlePlayPause}>
-                    {
-                        !this.state.playing ? 'Play' : 'Pause'
-                    }
-                </PlayButton>
+                
                 <p id="subtitle" className="">&nbsp;</p>
                 <AudioContainer>
                     <button onClick={this.removeAll}>
                         Remove all
                     </button>
                     <button onClick={this.downloadFile}>download</button>
-                    <button onClick={this.sendingFile}>Sending to server</button>
+                    <button onClick={this.sendingFile}>{this.state.responseMessage}</button>
                     <WaveformContianer>
                         <Wave id="waveform" />
                         <audio id="track" src={this.state.url} onLoadedMetadata={event => { this.setState({ duration: event.target.duration }) }} />
@@ -385,7 +381,11 @@ class AudioSpectrum extends Component {
                     {/* <div id="Spectograph" /> */}
                 </AudioContainer>
                 <div className="labelForm" >
-
+                <PlayButton onClick={this.handlePlayPause}>
+                    {
+                        !this.state.playing ? 'Play' : 'Pause'
+                    }
+                </PlayButton>
                     <form name="edit" style={{ opacity: 0, transition: 'opacity 300ms linear', margin: '10px 0' }}>
                         <div className="form-group">
                             <label htmlFor="note">Note</label>
