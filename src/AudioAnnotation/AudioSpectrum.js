@@ -340,12 +340,13 @@ class AudioSpectrum extends Component {
         const data = {
             folder: folder,
             duration: this.state.duration,
-            regions: regions
+            regions: regionsList
         }
+        console.log(JSON.stringify(data))
         const requestOptions = {
             method: 'POST',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             },
             body: JSON.stringify(
                 data
@@ -353,10 +354,17 @@ class AudioSpectrum extends Component {
         };
         fetch('http://xn--11by0j.com:8000/api/v1/response_srt_web/', requestOptions)
             .then(res => {
-                res.text()
+                if(!res.ok) {
+                    throw Error(res.statusText);
+                } 
+                this.setState({responseMessage: 'DONE'})
+                return res.text()
+
+            }).catch((e) => {
+                this.setState({responseMessage: 'ERROR'})
+                console.log(e)
             })
-            
-        this.setState({responseMessage: 'DONE!!!!!!'})
+        
     }
 
     render() {
@@ -365,7 +373,6 @@ class AudioSpectrum extends Component {
 
         return (
             <>
-                
                 <p id="subtitle" className="">&nbsp;</p>
                 <AudioContainer>
                     <button onClick={this.removeAll}>
@@ -373,6 +380,7 @@ class AudioSpectrum extends Component {
                     </button>
                     <button onClick={this.downloadFile}>download</button>
                     <button onClick={this.sendingFile}>{this.state.responseMessage}</button>
+                    <div>{this.state.responseMessage === "DONE" ?<p>Please Click 'Load Next' Button for new audio</p>: null }</div>
                     <WaveformContianer>
                         <Wave id="waveform" />
                         <audio id="track" src={this.state.url} onLoadedMetadata={event => { this.setState({ duration: event.target.duration }) }} />

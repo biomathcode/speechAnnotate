@@ -34,7 +34,7 @@ function App() {
 
   return (
     <div className="App"> 
-    <button type="button" onClick={handleRefresh}>refresh</button>
+    <button type="button" onClick={handleRefresh}>Load next</button>
     {!loading?
     <AudioSpectrum url={url} spectogram={spectogram} filedata={filedata} />: null  
   }
