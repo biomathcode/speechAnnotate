@@ -1,6 +1,6 @@
 {
-  "homepage": "https://pratiksharm.github.io/Speech-Annotation",
-  "name": "texteditor",
+  "homepage": "https://pratiksharm.github.io/speechannotation",
+  "name": "SpeechAnnotaion",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
