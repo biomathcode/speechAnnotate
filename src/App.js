@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AudioSpectrum from './AudioAnnotation/AudioSpectrum';
 
 import './App.css'
+import {axiosInstance} from './Api/axiosInstance'
 
 
 
@@ -12,21 +13,19 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://xn--11by0j.com:8000/api/v1/get_data")
-    .then(
-      res => res.json()
-    ).then(result => {
-      console.log(result)
-      setUrl(result.sound_url)
-      setSpectogram(result.spectogram_url)
+    axiosInstance.get("get_data")
+    .then(result => {
+      const data = result.data
+      setUrl(data.sound_url)
+      setSpectogram(data.spectogram_url)
       setFiledata({
-        table: result.table,
-        index: result.index,
-        serial: result.serial
+        table: data.table,
+        index: data.index,
+        serial: data.serial
       })
       setLoading(false)
     },)
-  },[url])
+  },[])
 
   const handleRefresh = () => {
     window.location.reload()
