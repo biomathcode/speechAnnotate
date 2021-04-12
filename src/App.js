@@ -13,7 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axiosInstance.get("get_data")
+    axiosInstance.get("get_data/")
     .then(result => {
       const data = result.data
       setUrl(data.sound_url)
