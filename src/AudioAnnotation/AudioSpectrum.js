@@ -320,6 +320,7 @@ class AudioSpectrum extends Component {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        return regions
     }
 
     sendingFile = () => {
@@ -364,7 +365,7 @@ class AudioSpectrum extends Component {
                 this.setState({responseMessage: 'ERROR'})
                 console.log(e)
             })
-        
+        return regions
     }
 
     render() {
